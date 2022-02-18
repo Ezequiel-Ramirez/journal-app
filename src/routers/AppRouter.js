@@ -3,58 +3,75 @@ import {
     BrowserRouter as Router,
     Switch,
     Redirect
-} from 'react-router-dom';
+  } from 'react-router-dom';
 
-import { AuthRouter } from './AuthRouter';
-import { JournalScreen } from '../components/journal/JournalScreen';
-import { firebase } from '../firebase/firebaseConfig';
 import { useDispatch } from 'react-redux';
-import { login } from '../actions/auth';
+
+import { firebase } from '../firebase/firebase-config'
+import { AuthRouter } from './AuthRouter';
 import { PrivateRoute } from './PrivateRoute';
+
+import { JournalScreen } from '../components/journal/JournalScreen';
+import { login } from '../actions/auth';
 import { PublicRoute } from './PublicRoute';
+import { startLoadingNotes } from '../actions/notes';
 
 export const AppRouter = () => {
 
     const dispatch = useDispatch();
 
-    const [checking, setChecking] = useState(true);
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [ checking, setChecking ] = useState(true);
+    const [ isLoggedIn, setIsLoggedIn ] = useState(false);
+
+
 
     useEffect(() => {
-        firebase.auth().onAuthStateChanged(user => {
-            if (user?.uid) {
-                console.log(user.uid);
-                dispatch(login(user.uid, user.displayName));
-                setIsLoggedIn(true);
-            } else {
-                setIsLoggedIn(false);
-            }
-            setChecking(false);
-        }
-        )
-    }, [dispatch, setChecking, setIsLoggedIn]);
+        
+        firebase.auth().onAuthStateChanged( async(user) => {
 
-    if (checking) {
-        return <h1>Checking...</h1>
+            if ( user?.uid ) {
+                dispatch( login( user.uid, user.displayName ) );
+                setIsLoggedIn( true );
+                dispatch( startLoadingNotes( user.uid ) );
+
+            } else {
+                setIsLoggedIn( false );
+            }
+
+            setChecking(false);
+
+        });
+        
+    }, [ dispatch, setChecking, setIsLoggedIn ])
+
+
+    if ( checking ) {
+        return (
+            <h1>Wait...</h1>
+        )
     }
+
+    
     return (
         <Router>
             <div>
                 <Switch>
-                    <PublicRoute
+                    <PublicRoute 
                         path="/auth"
-                        component={AuthRouter}
-                        isAuthenticated={isLoggedIn}
+                        component={ AuthRouter }
+                        isAuthenticated={ isLoggedIn }
                     />
 
-                    <PrivateRoute
+                    <PrivateRoute 
                         exact
-                        isAuthenticated={isLoggedIn}
+                        isAuthenticated={ isLoggedIn }
                         path="/"
-                        component={JournalScreen}
+                        component={ JournalScreen }
                     />
 
                     <Redirect to="/auth/login" />
+
+
                 </Switch>
             </div>
         </Router>

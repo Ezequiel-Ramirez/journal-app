@@ -1,21 +1,23 @@
-import React from 'react'
-import PropTypes from 'prop-types'
+import React from 'react';
+import PropTypes from 'prop-types';
 
-import { Route, Redirect } from 'react-router-dom'
+import { Route, Redirect } from 'react-router-dom';
 
-export const PrivateRoute = ({ isAuthenticated, component: Component, ...rest }) => {
+
+export const PrivateRoute = ({
+    isAuthenticated,
+    component: Component,
+    ...rest
+}) => {
+
     return (
-        <Route
-            {...rest}
-            render={props =>
-                isAuthenticated ?
-                    <Component {...props} />
-                    :
-                    <Redirect to={{
-                        pathname: '/auth/login',
-                        state: { from: props.location }
-                    }} />
-            }
+        <Route { ...rest }
+            component={ (props) => (
+                ( isAuthenticated )
+                    ? ( <Component { ...props } /> )
+                    : ( <Redirect to="/auth/login" /> )
+            )}
+        
         />
     )
 }
